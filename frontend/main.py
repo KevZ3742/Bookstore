@@ -4,7 +4,8 @@ from dashboard import Dashboard
 
 root = tk.Tk()
 root.title("Bookstore App")
-root.geometry("400x300")
+
+root.state("zoomed")
 
 login_screen = None
 
@@ -15,6 +16,7 @@ def show_login():
 def show_dashboard(role):
     Dashboard(root, role, show_login)
 
+# Initialize login screen
 login_screen = LoginRegisterScreen(root, show_dashboard)
 
 root.mainloop()

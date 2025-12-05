@@ -1,9 +1,12 @@
 from flask import Flask
 from routes.auth_routes import auth_bp
+from routes.book_routes import book_bp
 
 app = Flask(__name__)
-app.register_blueprint(auth_bp)
+
+# Register blueprints
+app.register_blueprint(auth_bp, url_prefix="/auth")
+app.register_blueprint(book_bp, url_prefix="/books")
 
 if __name__ == "__main__":
-    print("Backend running at http://127.0.0.1:5000")
     app.run(debug=True)
