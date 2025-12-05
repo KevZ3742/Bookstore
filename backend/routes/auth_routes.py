@@ -8,7 +8,6 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.json
-
     username = data.get("username")
     password = data.get("password")
 
@@ -23,7 +22,7 @@ def register():
     try:
         cursor.execute(
             "INSERT INTO users (username, password_hash, role) VALUES (%s, %s, %s)",
-            (username, hashed_pw, "customer")
+            (username, hashed_pw, "customer")  # default role
         )
         conn.commit()
     except mysql.connector.errors.IntegrityError:
@@ -53,6 +52,10 @@ def login():
         return jsonify({"status": "fail", "message": "User not found"}), 404
 
     if bcrypt.checkpw(password.encode(), user["password_hash"].encode()):
-        return jsonify({"status": "success", "message": "Login OK"})
+        return jsonify({
+            "status": "success",
+            "message": "Login OK",
+            "role": user["role"]
+        })
     else:
         return jsonify({"status": "fail", "message": "Incorrect password"}), 401

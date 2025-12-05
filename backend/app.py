@@ -1,4 +1,3 @@
-# backend/app.py
 from flask import Flask
 from routes.auth_routes import auth_bp
 
