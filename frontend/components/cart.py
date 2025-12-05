@@ -1,0 +1,126 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+
+class Cart:
+    def __init__(self, parent):
+        """
+        Cart component that creates:
+         - a Treeview with columns: Title, Author, Type, Cost
+         - Remove Selected button
+         - Checkout button
+         - Total label
+        parent: a tk/container widget to pack the cart into
+        """
+        self.parent = parent
+        self.frame = ttk.Frame(parent)
+        self.frame.pack(expand=True, fill="both")
+
+        # Tree
+        self.tree = ttk.Treeview(self.frame, columns=("Title", "Author", "Type", "Cost"), show="headings", selectmode="browse")
+        for col in ("Title", "Author", "Type", "Cost"):
+            self.tree.heading(col, text=col)
+            self.tree.column(col, anchor="center", width=120)
+        self.tree.pack(expand=True, fill="both", padx=5, pady=(5,0))
+
+        # Controls row: Remove & Checkout
+        controls = ttk.Frame(self.frame)
+        controls.pack(fill="x", pady=8, padx=5)
+
+        self.remove_btn = ttk.Button(controls, text="Remove Selected", command=self.remove_selected)
+        self.remove_btn.pack(side="left")
+
+        self.checkout_btn = ttk.Button(controls, text="Checkout", command=self.checkout)
+        self.checkout_btn.pack(side="right")
+
+        # Total label
+        self.total_label = ttk.Label(self.frame, text="Total: $0.00", font=("Arial", 12, "bold"))
+        self.total_label.pack(pady=(0,8))
+
+        # data
+        self.items = []
+
+    def add_item(self, title, author, type_choice, cost):
+        """Add an item to the cart and refresh the view."""
+        # store numeric cost, not formatted string
+        try:
+            cost_val = float(cost)
+        except Exception:
+            # try to strip $ and commas if present
+            try:
+                cost_val = float(str(cost).replace("$", "").replace(",", ""))
+            except Exception:
+                messagebox.showerror("Error", "Invalid cost value")
+                return
+
+        self.items.append({
+            "title": title,
+            "author": author,
+            "type": type_choice,
+            "cost": cost_val
+        })
+        self.refresh()
+
+    def refresh(self):
+        """Refresh the tree view and total."""
+        # clear
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        total = 0.0
+        for entry in self.items:
+            self.tree.insert("", tk.END, values=(entry["title"], entry["author"], entry["type"], f"${entry['cost']:.2f}"))
+            total += entry["cost"]
+
+        self.total_label.config(text=f"Total: ${total:.2f}")
+
+        # disable remove/checkout if empty
+        if len(self.items) == 0:
+            self.remove_btn.state(["disabled"])
+            self.checkout_btn.state(["disabled"])
+        else:
+            self.remove_btn.state(["!disabled"])
+            self.checkout_btn.state(["!disabled"])
+
+    def remove_selected(self):
+        """Remove the selected entry from the cart."""
+        sel = self.tree.selection()
+        if not sel:
+            messagebox.showwarning("Remove", "No item selected to remove.")
+            return
+        idx = self.tree.index(sel[0])
+        # confirm
+        if not messagebox.askyesno("Remove", "Remove selected item from cart?"):
+            return
+        # remove from data and refresh
+        try:
+            del self.items[idx]
+        except Exception:
+            # fallback: try to find matching by values
+            vals = self.tree.item(sel[0])["values"]
+            for i, it in enumerate(self.items):
+                if (it["title"], it["author"], it["type"], f"${it['cost']:.2f}") == tuple(vals):
+                    del self.items[i]
+                    break
+        self.refresh()
+
+    def checkout(self):
+        """Simulate checkout. Clear cart after confirmation.
+        Replace or extend this method to call a backend endpoint for real checkout.
+        """
+        if not self.items:
+            messagebox.showinfo("Checkout", "Your cart is empty.")
+            return
+
+        total = sum(it["cost"] for it in self.items)
+        confirm = messagebox.askyesno("Checkout", f"Confirm checkout? Total: ${total:.2f}")
+        if not confirm:
+            return
+
+        # Here you could call a backend route to create an order, e.g.:
+        # res, status = utils.checkout_order(self.items)
+        # handle status/res accordingly.
+
+        # For now: simulate success and clear cart
+        messagebox.showinfo("Checkout", f"Checkout successful! Total paid: ${total:.2f}")
+        self.items = []
+        self.refresh()
