@@ -3,7 +3,7 @@ from tkinter import messagebox
 
 API_URL = "http://127.0.0.1:5000"
 
-# ---------------- Auth ----------------
+# auth
 def login_user(username, password):
     try:
         res = requests.post(f"{API_URL}/auth/login", json={"username": username, "password": password})
@@ -12,15 +12,19 @@ def login_user(username, password):
         messagebox.showerror("Error", "Cannot reach server.")
         return {"status": "fail", "message": "Server not reachable"}
 
-def register_user(username, password):
+def register_user(username, email, password):
     try:
-        res = requests.post(f"{API_URL}/auth/register", json={"username": username, "password": password})
+        res = requests.post(f"{API_URL}/auth/register", json={
+            "username": username,
+            "email": email,
+            "password": password
+        })
         return res.json()
     except Exception:
         messagebox.showerror("Error", "Cannot reach server.")
         return {"status": "fail", "message": "Server not reachable"}
 
-# ---------------- Books ----------------
+# books
 def get_all_books():
     try:
         res = requests.get(f"{API_URL}/books/all")
@@ -45,7 +49,7 @@ def update_book(book_id, data):
         messagebox.showerror("Error", "Cannot reach server.")
         return {"error": "Server not reachable"}, 500
 
-# ---------------- Transactions ----------------
+# transactions
 def checkout_order(user_id, items):
     """
     items: list of dicts with keys: title, author, type, cost

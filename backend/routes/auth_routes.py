@@ -10,9 +10,13 @@ def register():
     data = request.json
     username = data.get("username")
     password = data.get("password")
+    email = data.get("email")
 
     if not username or not password:
-        return jsonify({"status": "fail", "message": "Missing fields"}), 400
+        return jsonify({"status": "fail", "message": "Missing username or password"}), 400
+
+    if not email:
+        return jsonify({"status": "fail", "message": "Email is required"}), 400
 
     hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
@@ -21,12 +25,18 @@ def register():
 
     try:
         cursor.execute(
-            "INSERT INTO users (username, password_hash, role) VALUES (%s, %s, %s)",
-            (username, hashed_pw, "customer")  # default role
+            "INSERT INTO users (username, password_hash, email, role) VALUES (%s, %s, %s, %s)",
+            (username, hashed_pw, email, "customer")  # default role
         )
         conn.commit()
-    except mysql.connector.errors.IntegrityError:
-        return jsonify({"status": "fail", "message": "Username already exists"}), 400
+    except mysql.connector.errors.IntegrityError as e:
+        error_msg = str(e)
+        if "username" in error_msg.lower():
+            return jsonify({"status": "fail", "message": "Username already exists"}), 400
+        elif "email" in error_msg.lower():
+            return jsonify({"status": "fail", "message": "Email already exists"}), 400
+        else:
+            return jsonify({"status": "fail", "message": "Registration failed"}), 400
     finally:
         cursor.close()
         conn.close()

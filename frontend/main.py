@@ -14,7 +14,6 @@ def show_login():
     login_screen = LoginRegisterScreen(root, show_dashboard)
 
 def show_dashboard(user_info):
-    """user_info: dict with role, user_id, username"""
     Dashboard(root, user_info, show_login)
 
 # Initialize login screen

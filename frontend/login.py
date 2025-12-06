@@ -39,7 +39,6 @@ class LoginRegisterScreen:
         password = password_entry.get()
         res = utils.login_user(username, password)
         if res["status"] == "success":
-            # Pass complete user info
             user_info = {
                 "role": res["role"],
                 "user_id": res["user_id"],
@@ -60,20 +59,25 @@ class LoginRegisterScreen:
         username_entry = ttk.Entry(frame)
         username_entry.grid(row=1, column=1, sticky=tk.EW, padx=10)
 
-        ttk.Label(frame, text="Password:").grid(row=2, column=0, sticky=tk.W, pady=5)
+        ttk.Label(frame, text="Email:").grid(row=2, column=0, sticky=tk.W, pady=5)
+        email_entry = ttk.Entry(frame)
+        email_entry.grid(row=2, column=1, sticky=tk.EW, padx=10)
+
+        ttk.Label(frame, text="Password:").grid(row=3, column=0, sticky=tk.W, pady=5)
         password_entry = ttk.Entry(frame, show="*")
-        password_entry.grid(row=2, column=1, sticky=tk.EW, padx=10)
+        password_entry.grid(row=3, column=1, sticky=tk.EW, padx=10)
 
         ttk.Button(frame, text="Register",
-                   command=lambda: self.handle_register(username_entry, password_entry)).grid(row=3, column=0, columnspan=2, pady=10)
+                   command=lambda: self.handle_register(username_entry, email_entry, password_entry)).grid(row=4, column=0, columnspan=2, pady=10)
 
-        ttk.Button(frame, text="Have an account?", command=self.show_login).grid(row=4, column=0, columnspan=2)
+        ttk.Button(frame, text="Have an account?", command=self.show_login).grid(row=5, column=0, columnspan=2)
         frame.columnconfigure(1, weight=1)
 
-    def handle_register(self, username_entry, password_entry):
+    def handle_register(self, username_entry, email_entry, password_entry):
         username = username_entry.get()
+        email = email_entry.get()
         password = password_entry.get()
-        res = utils.register_user(username, password)
+        res = utils.register_user(username, email, password)
         if res["status"] == "success":
             messagebox.showinfo("Register", "Registration successful! Please login.")
             self.show_login()

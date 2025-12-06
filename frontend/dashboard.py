@@ -4,9 +4,6 @@ from components.customer_dashboard import CustomerDashboard
 
 class Dashboard:
     def __init__(self, root, user_info, show_login_callback):
-        """
-        user_info should be a dict with: role, user_id, username
-        """
         self.root = root
         self.user_info = user_info
         self.show_login_callback = show_login_callback

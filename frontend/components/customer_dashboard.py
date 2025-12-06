@@ -13,7 +13,7 @@ class CustomerDashboard:
         self.build_header()
         self.create_tabs()
 
-    # ---------------- HEADER ----------------
+    # Header
     def build_header(self):
         header = ttk.Frame(self.root, padding=10)
         header.pack(fill="x")
@@ -21,12 +21,12 @@ class CustomerDashboard:
         ttk.Label(header, text=f"Customer Dashboard - {self.username}", font=("Arial", 14, "bold")).pack(side="left")
         ttk.Button(header, text="Logout", command=self.show_login_callback).pack(side="right")
 
-    # ---------------- TABS ----------------
+    # Tabs
     def create_tabs(self):
         notebook = ttk.Notebook(self.root)
         notebook.pack(expand=True, fill="both", padx=10, pady=10)
 
-        # --- Book List Tab ---
+        # Book List Tab
         book_frame = ttk.Frame(notebook, padding=10)
         notebook.add(book_frame, text="Book List")
 
@@ -51,7 +51,7 @@ class CustomerDashboard:
 
         self.cart = Cart(cart_frame, user_id=self.user_id, on_checkout_callback=self.on_checkout_complete)
 
-        # --- Transaction History Tab ---
+        # Transaction History Tab
         transaction_frame = ttk.Frame(notebook, padding=10)
         notebook.add(transaction_frame, text="My Transactions")
 
@@ -69,7 +69,7 @@ class CustomerDashboard:
         
         self.load_transactions()
 
-    # ---------------- LOAD BOOKS ----------------
+    # Load books
     def load_books(self, keyword=None):
         books = get_all_books()
         if keyword:
@@ -81,7 +81,7 @@ class CustomerDashboard:
         keyword = self.search_entry.get()
         self.load_books(keyword)
 
-    # ---------------- LOAD TRANSACTIONS ----------------
+    # Load transactions
     def load_transactions(self):
         transactions = get_user_transactions(self.user_id)
         
@@ -108,18 +108,13 @@ class CustomerDashboard:
                 str(t.get("created_at", ""))[:19]  # Format timestamp
             ))
 
-    # ---------------- Callback after checkout ----------------
+    # Callback after checkout
     def on_checkout_complete(self):
-        """Called after successful checkout to refresh data."""
         self.load_transactions()
         self.load_books()  # Also refresh books to show updated quantities
 
-    # ---------------- Double click handler that shows Buy/Rent/Cancel popup ----------------
+    # Double click handler that shows Buy/Rent/Cancel popup
     def on_book_double_click(self, event):
-        """
-        When a customer double-clicks a book, show a small popup with three choices:
-        Buy | Rent | Cancel
-        """
         item_id = self.book_tree.focus()
         if not item_id:
             return

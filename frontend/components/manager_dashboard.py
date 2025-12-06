@@ -12,7 +12,7 @@ class ManagerDashboard:
         self.build_header()
         self.create_tabs()
 
-    # ---------------- HEADER W/ LOGOUT ----------------
+    # Header w/ Logout
     def build_header(self):
         header = ttk.Frame(self.root, padding=10)
         header.pack(fill="x")
@@ -20,12 +20,12 @@ class ManagerDashboard:
         ttk.Label(header, text=f"Manager Dashboard - {self.username}", font=("Arial", 14, "bold")).pack(side="left")
         ttk.Button(header, text="Logout", command=self.show_login_callback).pack(side="right")
 
-    # ---------------- TABS ----------------
+    # Tabs
     def create_tabs(self):
         notebook = ttk.Notebook(self.root)
         notebook.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
 
-        # --- Book List Tab ---
+        # Book List Tab
         book_frame = ttk.Frame(notebook, padding=10)
         notebook.add(book_frame, text="Book List")
 
@@ -36,7 +36,7 @@ class ManagerDashboard:
 
         self.load_books()
 
-        # --- Transaction Tab ---
+        # Transaction Tab
         transaction_frame = ttk.Frame(notebook, padding=10)
         notebook.add(transaction_frame, text="Transaction List")
         
@@ -57,12 +57,12 @@ class ManagerDashboard:
         
         self.load_transactions()
 
-    # ---------------- LOAD BOOKS ----------------
+    # Load books
     def load_books(self):
         books = get_all_books()
         self.book_tree.populate(books)
 
-    # ---------------- LOAD TRANSACTIONS ----------------
+    # Load transactions
     def load_transactions(self):
         transactions = get_all_transactions()
         
@@ -90,7 +90,7 @@ class ManagerDashboard:
                 str(t.get("created_at", ""))[:19]  # Format timestamp
             ))
 
-    # ---------------- ADD BOOK POPUP ----------------
+    # Add book popup
     def open_add_book_window(self):
         popup = Toplevel(self.root)
         popup.title("Add New Book")
@@ -134,7 +134,7 @@ class ManagerDashboard:
         ttk.Button(popup, text="Save", command=save_new_book).pack(pady=15)
         ttk.Button(popup, text="Cancel", command=popup.destroy).pack()
 
-    # ---------------- EDIT (DOUBLE CLICK) ----------------
+    # Edit book (double click)
     def on_double_click(self, event):
         item_id = self.book_tree.focus()
         if not item_id:
@@ -144,7 +144,7 @@ class ManagerDashboard:
         book_id = values[0]
         self.open_edit_book_window(book_id, values)
 
-    # ---------------- EDIT BOOK POPUP ----------------
+    # Edit book popup
     def open_edit_book_window(self, book_id, values):
         popup = Toplevel(self.root)
         popup.title("Edit Book")
@@ -192,7 +192,7 @@ class ManagerDashboard:
         ttk.Button(btn_frame, text="Save", command=save_changes).grid(row=0, column=0, padx=10)
         ttk.Button(btn_frame, text="Cancel", command=popup.destroy).grid(row=0, column=1, padx=10)
 
-    # ---------------- EDIT TRANSACTION (DOUBLE CLICK) ----------------
+    # Edit transaction (double click)
     def on_transaction_double_click(self, event):
         item_id = self.transaction_tree.focus()
         if not item_id:
@@ -202,7 +202,7 @@ class ManagerDashboard:
         transaction_id = values[0]
         self.open_edit_transaction_window(transaction_id, values)
 
-    # ---------------- EDIT TRANSACTION POPUP ----------------
+    # Edit transaction popup
     def open_edit_transaction_window(self, transaction_id, values):
         popup = Toplevel(self.root)
         popup.title("Edit Transaction")

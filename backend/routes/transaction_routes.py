@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify
 from database import get_connection
+from email_service import send_checkout_email
 import mysql.connector
 
 transaction_bp = Blueprint("transaction_bp", __name__)
 
-# ---------------- Create Transaction (Checkout) ----------------
+# checkout
 @transaction_bp.route("/checkout", methods=["POST"])
 def checkout():
     """
@@ -74,16 +75,36 @@ def checkout():
         
         conn.commit()
         
+        # Get user email for sending confirmation
+        cursor.execute("SELECT username, email FROM users WHERE user_id = %s", (user_id,))
+        user = cursor.fetchone()
+        
+        # Calculate total
+        total = sum(item['cost'] for item in items)
+        
+        # Send email if user has an email address
+        email_sent = False
+        if user and user.get('email'):
+            email_sent, email_msg = send_checkout_email(
+                customer_email=user['email'],
+                customer_name=user['username'],
+                items=items,
+                total=total
+            )
+        
         # Build response message
         message = f"Checkout processed: {len(paid_items)} paid"
         if pending_items:
             message += f", {len(pending_items)} pending (out of stock)"
+        if email_sent:
+            message += ". Confirmation email sent!"
         
         return jsonify({
             "message": message,
             "paid_count": len(paid_items),
             "pending_count": len(pending_items),
-            "pending_items": pending_items
+            "pending_items": pending_items,
+            "email_sent": email_sent
         }), 201
     except Exception as e:
         conn.rollback()
@@ -92,7 +113,7 @@ def checkout():
         cursor.close()
         conn.close()
 
-# ---------------- Get All Transactions (for Manager) ----------------
+# get all transactions (for manager)
 @transaction_bp.route("/all", methods=["GET"])
 def get_all_transactions():
     """Returns all transactions with user information."""
@@ -117,7 +138,7 @@ def get_all_transactions():
         cursor.close()
         conn.close()
 
-# ---------------- Get User's Transactions ----------------
+# get transactions for a specific user
 @transaction_bp.route("/user/<int:user_id>", methods=["GET"])
 def get_user_transactions(user_id):
     """Returns all transactions for a specific user."""

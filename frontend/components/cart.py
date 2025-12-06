@@ -4,16 +4,6 @@ from utils import checkout_order
 
 class Cart:
     def __init__(self, parent, user_id=None, on_checkout_callback=None):
-        """
-        Cart component that creates:
-         - a Treeview with columns: Title, Author, Type, Cost
-         - Remove Selected button
-         - Checkout button
-         - Total label
-        parent: a tk/container widget to pack the cart into
-        user_id: the logged-in user's ID for checkout
-        on_checkout_callback: function to call after successful checkout
-        """
         self.parent = parent
         self.user_id = user_id
         self.on_checkout_callback = on_checkout_callback
@@ -47,11 +37,9 @@ class Cart:
 
     def add_item(self, title, author, type_choice, cost):
         """Add an item to the cart and refresh the view."""
-        # store numeric cost, not formatted string
         try:
             cost_val = float(cost)
         except Exception:
-            # try to strip $ and commas if present
             try:
                 cost_val = float(str(cost).replace("$", "").replace(",", ""))
             except Exception:
@@ -67,7 +55,6 @@ class Cart:
         self.refresh()
 
     def refresh(self):
-        """Refresh the tree view and total."""
         # clear
         for item in self.tree.get_children():
             self.tree.delete(item)
@@ -88,7 +75,6 @@ class Cart:
             self.checkout_btn.state(["!disabled"])
 
     def remove_selected(self):
-        """Remove the selected entry from the cart."""
         sel = self.tree.selection()
         if not sel:
             messagebox.showwarning("Remove", "No item selected to remove.")
@@ -110,7 +96,6 @@ class Cart:
         self.refresh()
 
     def checkout(self):
-        """Process checkout through backend API."""
         if not self.items:
             messagebox.showinfo("Checkout", "Your cart is empty.")
             return
