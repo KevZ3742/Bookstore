@@ -13,8 +13,9 @@ def show_login():
     global login_screen
     login_screen = LoginRegisterScreen(root, show_dashboard)
 
-def show_dashboard(role):
-    Dashboard(root, role, show_login)
+def show_dashboard(user_info):
+    """user_info: dict with role, user_id, username"""
+    Dashboard(root, user_info, show_login)
 
 # Initialize login screen
 login_screen = LoginRegisterScreen(root, show_dashboard)

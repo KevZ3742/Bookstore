@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from utils import checkout_order
 
 class Cart:
-    def __init__(self, parent):
+    def __init__(self, parent, user_id=None, on_checkout_callback=None):
         """
         Cart component that creates:
          - a Treeview with columns: Title, Author, Type, Cost
@@ -10,8 +11,12 @@ class Cart:
          - Checkout button
          - Total label
         parent: a tk/container widget to pack the cart into
+        user_id: the logged-in user's ID for checkout
+        on_checkout_callback: function to call after successful checkout
         """
         self.parent = parent
+        self.user_id = user_id
+        self.on_checkout_callback = on_checkout_callback
         self.frame = ttk.Frame(parent)
         self.frame.pack(expand=True, fill="both")
 
@@ -38,6 +43,7 @@ class Cart:
 
         # data
         self.items = []
+        self.refresh()
 
     def add_item(self, title, author, type_choice, cost):
         """Add an item to the cart and refresh the view."""
@@ -104,11 +110,13 @@ class Cart:
         self.refresh()
 
     def checkout(self):
-        """Simulate checkout. Clear cart after confirmation.
-        Replace or extend this method to call a backend endpoint for real checkout.
-        """
+        """Process checkout through backend API."""
         if not self.items:
             messagebox.showinfo("Checkout", "Your cart is empty.")
+            return
+
+        if not self.user_id:
+            messagebox.showerror("Error", "User not logged in.")
             return
 
         total = sum(it["cost"] for it in self.items)
@@ -116,11 +124,24 @@ class Cart:
         if not confirm:
             return
 
-        # Here you could call a backend route to create an order, e.g.:
-        # res, status = utils.checkout_order(self.items)
-        # handle status/res accordingly.
-
-        # For now: simulate success and clear cart
-        messagebox.showinfo("Checkout", f"Checkout successful! Total paid: ${total:.2f}")
-        self.items = []
-        self.refresh()
+        # Call backend checkout
+        res, status = checkout_order(self.user_id, self.items)
+        
+        if status == 201:
+            # Show detailed message
+            message = res.get("message", "Checkout successful!")
+            pending_items = res.get("pending_items", [])
+            
+            if pending_items:
+                message += f"\n\nPending items (out of stock):\n" + "\n".join(f"- {item}" for item in pending_items)
+                message += "\n\nThese will be fulfilled when back in stock."
+            
+            messagebox.showinfo("Checkout Complete", message)
+            self.items = []
+            self.refresh()
+            
+            # Call the callback to refresh transactions if provided
+            if self.on_checkout_callback:
+                self.on_checkout_callback()
+        else:
+            messagebox.showerror("Checkout Failed", res.get("error", "Unknown error occurred"))

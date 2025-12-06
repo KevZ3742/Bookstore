@@ -39,8 +39,13 @@ class LoginRegisterScreen:
         password = password_entry.get()
         res = utils.login_user(username, password)
         if res["status"] == "success":
-            role = res["role"]
-            self.show_dashboard_callback(role)
+            # Pass complete user info
+            user_info = {
+                "role": res["role"],
+                "user_id": res["user_id"],
+                "username": res["username"]
+            }
+            self.show_dashboard_callback(user_info)
         else:
             messagebox.showerror("Login Failed", res.get("message", "Error"))
 

@@ -3,9 +3,12 @@ from components.manager_dashboard import ManagerDashboard
 from components.customer_dashboard import CustomerDashboard
 
 class Dashboard:
-    def __init__(self, root, role, show_login_callback):
+    def __init__(self, root, user_info, show_login_callback):
+        """
+        user_info should be a dict with: role, user_id, username
+        """
         self.root = root
-        self.role = role
+        self.user_info = user_info
         self.show_login_callback = show_login_callback
         self.show_dashboard()
 
@@ -15,7 +18,11 @@ class Dashboard:
 
     def show_dashboard(self):
         self.clear_frame()
-        if self.role == "manager":
-            ManagerDashboard(self.root, self.show_login_callback)
+        role = self.user_info.get("role")
+        username = self.user_info.get("username")
+        user_id = self.user_info.get("user_id")
+        
+        if role == "manager":
+            ManagerDashboard(self.root, username, self.show_login_callback)
         else:
-            CustomerDashboard(self.root, self.show_login_callback)
+            CustomerDashboard(self.root, user_id, username, self.show_login_callback)

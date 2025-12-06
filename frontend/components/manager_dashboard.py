@@ -1,12 +1,13 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, Toplevel
 from components.book_treeview import BookTreeView
-from utils import get_all_books, add_book, update_book
+from utils import get_all_books, add_book, update_book, get_all_transactions
 
 
 class ManagerDashboard:
-    def __init__(self, root, show_login_callback):
+    def __init__(self, root, username, show_login_callback):
         self.root = root
+        self.username = username
         self.show_login_callback = show_login_callback
         self.build_header()
         self.create_tabs()
@@ -16,7 +17,7 @@ class ManagerDashboard:
         header = ttk.Frame(self.root, padding=10)
         header.pack(fill="x")
 
-        ttk.Label(header, text="Manager Dashboard", font=("Arial", 14, "bold")).pack(side="left")
+        ttk.Label(header, text=f"Manager Dashboard - {self.username}", font=("Arial", 14, "bold")).pack(side="left")
         ttk.Button(header, text="Logout", command=self.show_login_callback).pack(side="right")
 
     # ---------------- TABS ----------------
@@ -35,15 +36,56 @@ class ManagerDashboard:
 
         self.load_books()
 
-        # --- Transaction Tab Placeholder ---
+        # --- Transaction Tab ---
         transaction_frame = ttk.Frame(notebook, padding=10)
         notebook.add(transaction_frame, text="Transaction List")
-        ttk.Label(transaction_frame, text="Transactions will appear here", font=("Arial", 12)).pack(pady=20)
+        
+        ttk.Label(transaction_frame, text="All Transactions", font=("Arial", 14, "bold")).pack(pady=10)
+        
+        # Transaction tree
+        trans_columns = ("ID", "User", "Book", "Author", "Type", "Cost", "Status", "Date")
+        self.transaction_tree = ttk.Treeview(transaction_frame, columns=trans_columns, show="headings")
+        for col in trans_columns:
+            self.transaction_tree.heading(col, text=col)
+            self.transaction_tree.column(col, anchor="center", width=100)
+        self.transaction_tree.pack(expand=True, fill="both", padx=5, pady=5)
+
+        ttk.Button(transaction_frame, text="Refresh Transactions", command=self.load_transactions).pack(pady=5)
+        
+        self.load_transactions()
 
     # ---------------- LOAD BOOKS ----------------
     def load_books(self):
         books = get_all_books()
         self.book_tree.populate(books)
+
+    # ---------------- LOAD TRANSACTIONS ----------------
+    def load_transactions(self):
+        transactions = get_all_transactions()
+        
+        # Clear existing
+        for item in self.transaction_tree.get_children():
+            self.transaction_tree.delete(item)
+        
+        # Populate
+        for t in transactions:
+            # Convert cost to float if it's a string
+            cost = t.get('cost', 0)
+            try:
+                cost_float = float(cost)
+            except (ValueError, TypeError):
+                cost_float = 0.0
+            
+            self.transaction_tree.insert("", tk.END, values=(
+                t.get("transaction_id"),
+                t.get("username"),
+                t.get("book_title"),
+                t.get("author"),
+                t.get("type"),
+                f"${cost_float:.2f}",
+                t.get("status"),
+                str(t.get("created_at", ""))[:19]  # Format timestamp
+            ))
 
     # ---------------- ADD BOOK POPUP ----------------
     def open_add_book_window(self):
