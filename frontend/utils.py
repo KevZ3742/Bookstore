@@ -77,3 +77,12 @@ def get_user_transactions(user_id):
     except Exception:
         messagebox.showerror("Error", "Cannot reach server.")
         return []
+
+def update_transaction(transaction_id, data):
+    """Update a transaction."""
+    try:
+        res = requests.put(f"{API_URL}/transactions/update/{transaction_id}", json=data)
+        return res.json(), res.status_code
+    except Exception:
+        messagebox.showerror("Error", "Cannot reach server.")
+        return {"error": "Server not reachable"}, 500

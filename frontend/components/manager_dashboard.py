@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, Toplevel
 from components.book_treeview import BookTreeView
-from utils import get_all_books, add_book, update_book, get_all_transactions
+from utils import get_all_books, add_book, update_book, get_all_transactions, update_transaction
 
 
 class ManagerDashboard:
@@ -49,6 +49,9 @@ class ManagerDashboard:
             self.transaction_tree.heading(col, text=col)
             self.transaction_tree.column(col, anchor="center", width=100)
         self.transaction_tree.pack(expand=True, fill="both", padx=5, pady=5)
+        
+        # Bind double-click to edit transaction
+        self.transaction_tree.bind("<Double-1>", self.on_transaction_double_click)
 
         ttk.Button(transaction_frame, text="Refresh Transactions", command=self.load_transactions).pack(pady=5)
         
@@ -183,6 +186,59 @@ class ManagerDashboard:
                 messagebox.showinfo("Success", "Book updated successfully")
                 popup.destroy()
                 self.load_books()
+            else:
+                messagebox.showerror("Error", res.get("error", "Unknown error"))
+
+        ttk.Button(btn_frame, text="Save", command=save_changes).grid(row=0, column=0, padx=10)
+        ttk.Button(btn_frame, text="Cancel", command=popup.destroy).grid(row=0, column=1, padx=10)
+
+    # ---------------- EDIT TRANSACTION (DOUBLE CLICK) ----------------
+    def on_transaction_double_click(self, event):
+        item_id = self.transaction_tree.focus()
+        if not item_id:
+            return
+        item = self.transaction_tree.item(item_id)
+        values = item["values"]
+        transaction_id = values[0]
+        self.open_edit_transaction_window(transaction_id, values)
+
+    # ---------------- EDIT TRANSACTION POPUP ----------------
+    def open_edit_transaction_window(self, transaction_id, values):
+        popup = Toplevel(self.root)
+        popup.title("Edit Transaction")
+        popup.geometry("400x400")
+        popup.resizable(False, False)
+
+        ttk.Label(popup, text="Edit Transaction", font=("Arial", 14, "bold")).pack(pady=10)
+        
+        # Display transaction info (read-only)
+        info_frame = ttk.Frame(popup, padding=10)
+        info_frame.pack(fill=tk.BOTH, expand=True)
+
+        labels = ["ID:", "User:", "Book:", "Author:", "Type:", "Cost:"]
+        for i, label in enumerate(labels):
+            ttk.Label(info_frame, text=label, font=("Arial", 10, "bold")).grid(row=i, column=0, sticky=tk.W, pady=5, padx=5)
+            ttk.Label(info_frame, text=str(values[i]), font=("Arial", 10)).grid(row=i, column=1, sticky=tk.W, pady=5, padx=5)
+
+        # Status dropdown (editable)
+        ttk.Label(info_frame, text="Status:", font=("Arial", 10, "bold")).grid(row=6, column=0, sticky=tk.W, pady=5, padx=5)
+        
+        status_var = tk.StringVar(value=values[6])  # Current status
+        status_combo = ttk.Combobox(info_frame, textvariable=status_var, values=["pending", "paid"], state="readonly", width=15)
+        status_combo.grid(row=6, column=1, sticky=tk.W, pady=5, padx=5)
+
+        # Save and Cancel Buttons
+        btn_frame = ttk.Frame(popup)
+        btn_frame.pack(pady=15)
+
+        def save_changes():
+            new_status = status_var.get()
+            
+            res, status = update_transaction(transaction_id, {"status": new_status})
+            if status == 200:
+                messagebox.showinfo("Success", "Transaction updated successfully")
+                popup.destroy()
+                self.load_transactions()
             else:
                 messagebox.showerror("Error", res.get("error", "Unknown error"))
 

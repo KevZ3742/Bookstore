@@ -140,3 +140,32 @@ def get_user_transactions(user_id):
     finally:
         cursor.close()
         conn.close()
+
+# ---------------- Update Transaction ----------------
+@transaction_bp.route("/update/<int:transaction_id>", methods=["PUT"])
+def update_transaction(transaction_id):
+    """Update transaction status."""
+    data = request.json
+    status = data.get("status")
+    
+    if not status or status not in ['pending', 'paid']:
+        return jsonify({"error": "Invalid status. Must be 'pending' or 'paid'"}), 400
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        query = "UPDATE transactions SET status = %s WHERE transaction_id = %s"
+        cursor.execute(query, (status, transaction_id))
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            return jsonify({"error": "Transaction not found"}), 404
+            
+        return jsonify({"message": "Transaction updated successfully"}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
